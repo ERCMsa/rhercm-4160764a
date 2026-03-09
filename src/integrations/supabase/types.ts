@@ -14,7 +14,83 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      documents: {
+        Row: {
+          content: Json
+          created_at: string
+          document_type: string
+          id: string
+          title: string
+          updated_at: string
+          worker_id: string
+        }
+        Insert: {
+          content?: Json
+          created_at?: string
+          document_type: string
+          id?: string
+          title: string
+          updated_at?: string
+          worker_id: string
+        }
+        Update: {
+          content?: Json
+          created_at?: string
+          document_type?: string
+          id?: string
+          title?: string
+          updated_at?: string
+          worker_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documents_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "workers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workers: {
+        Row: {
+          address: string | null
+          cin: string | null
+          created_at: string
+          department: string | null
+          full_name: string
+          hire_date: string | null
+          id: string
+          phone: string | null
+          position: string | null
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          cin?: string | null
+          created_at?: string
+          department?: string | null
+          full_name: string
+          hire_date?: string | null
+          id?: string
+          phone?: string | null
+          position?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          cin?: string | null
+          created_at?: string
+          department?: string | null
+          full_name?: string
+          hire_date?: string | null
+          id?: string
+          phone?: string | null
+          position?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
