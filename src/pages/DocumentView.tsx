@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { DOCUMENT_TYPES } from "@/lib/supabase-helpers";
 import { exportToPdf } from "@/lib/pdf-export";
 import { Button } from "@/components/ui/button";
-import { Download, ArrowLeft } from "lucide-react";
+import { Download, ArrowLeft, Printer } from "lucide-react";
 import { Link } from "react-router-dom";
 import DocumentPreview from "@/components/DocumentPreview";
 import type { Json } from "@/integrations/supabase/types";
