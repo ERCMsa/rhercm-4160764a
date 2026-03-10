@@ -112,3 +112,22 @@
     @apply mt-12 flex justify-between items-end;
   }
 }
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #document-preview,
+  #document-preview * {
+    visibility: visible;
+  }
+  #document-preview {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    box-shadow: none;
+  }
+}
