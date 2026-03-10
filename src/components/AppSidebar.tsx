@@ -1,10 +1,11 @@
 import { Link, useLocation } from "react-router-dom";
-import { FileText, Users, LayoutDashboard, LogOut, LogIn, AlertTriangle, FilePlus } from "lucide-react";
+import { FileText, Users, LayoutDashboard, LogOut, LogIn, AlertTriangle, FilePlus, BarChart3 } from "lucide-react";
 
 const navItems = [
   { to: "/", label: "Tableau de bord", icon: LayoutDashboard },
   { to: "/workers", label: "Employés", icon: Users },
   { to: "/documents", label: "Documents", icon: FileText },
+  { to: "/statistics", label: "Statistiques", icon: BarChart3 },
   { to: "/generate/contract", label: "Contrat", icon: FilePlus },
   { to: "/generate/bon_sortie", label: "Bon de sortie", icon: LogOut },
   { to: "/generate/bon_rentree", label: "Bon de rentrée", icon: LogIn },

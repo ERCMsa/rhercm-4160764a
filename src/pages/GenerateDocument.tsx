@@ -14,6 +14,24 @@ import DocumentPreview from "@/components/DocumentPreview";
 
 type DocType = keyof typeof DOCUMENT_TYPES;
 
+const todayStr = () => new Date().toISOString().slice(0, 10);
+const nowTime = () => new Date().toTimeString().slice(0, 5);
+
+const getDefaultValues = (docType: DocType): Record<string, string> => {
+  switch (docType) {
+    case "contract":
+      return { start_date: todayStr() };
+    case "bon_sortie":
+      return { sortie_date: todayStr(), sortie_time: nowTime() };
+    case "bon_rentree":
+      return { rentree_date: todayStr(), rentree_time: nowTime() };
+    case "avertissement":
+      return { avert_date: todayStr(), infraction_date: todayStr() };
+    default:
+      return {};
+  }
+};
+
 const formFieldsByType: Record<DocType, { key: string; label: string; type?: string }[]> = {
   contract: [
     { key: "salary", label: "Salaire (DH)" },
@@ -53,7 +71,7 @@ export default function GenerateDocument() {
   const docType = type as DocType;
 
   const [workerId, setWorkerId] = useState("");
-  const [formData, setFormData] = useState<Record<string, string>>({});
+  const [formData, setFormData] = useState<Record<string, string>>(() => getDefaultValues(docType));
   const [showPreview, setShowPreview] = useState(false);
 
   const { data: workers } = useQuery({ queryKey: ["workers"], queryFn: getWorkers });
@@ -93,7 +111,6 @@ export default function GenerateDocument() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Form */}
         <div className="bg-card border rounded-xl p-6 space-y-5">
           <div>
             <Label>Employé *</Label>
@@ -135,7 +152,6 @@ export default function GenerateDocument() {
           </div>
         </div>
 
-        {/* Preview */}
         {showPreview && selectedWorker && (
           <div className="space-y-4">
             <div className="flex justify-end">

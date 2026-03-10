@@ -47,9 +47,14 @@ export default function DocumentView() {
             <p className="text-sm text-muted-foreground">Créé le {new Date(doc.created_at).toLocaleDateString("fr-FR")}</p>
           </div>
         </div>
-        <Button onClick={() => exportToPdf("document-preview", doc.title)} variant="outline">
-          <Download className="w-4 h-4 mr-2" />Télécharger PDF
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={() => window.print()} variant="outline">
+            <Printer className="w-4 h-4 mr-2" />Imprimer
+          </Button>
+          <Button onClick={() => exportToPdf("document-preview", doc.title)} variant="outline">
+            <Download className="w-4 h-4 mr-2" />Télécharger PDF
+          </Button>
+        </div>
       </div>
       <div id="document-preview">
         <DocumentPreview type={docType} worker={worker} data={formData} />
