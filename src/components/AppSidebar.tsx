@@ -1,5 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
-import { FileText, Users, LayoutDashboard, LogOut, LogIn, AlertTriangle, FilePlus, BarChart3 } from "lucide-react";
+import { Users, LayoutDashboard, LogOut, LogIn, AlertTriangle, FilePlus, BarChart3, FileText } from "lucide-react";
+import logoErcm from "@/assets/logo-ercm.png";
 
 const navItems = [
   { to: "/", label: "Tableau de bord", icon: LayoutDashboard },
@@ -18,11 +19,13 @@ export default function AppSidebar() {
   return (
     <aside className="w-64 min-h-screen bg-sidebar text-sidebar-foreground flex flex-col border-r border-sidebar-border">
       <div className="p-6 border-b border-sidebar-border">
-        <h1 className="text-xl font-bold text-sidebar-primary tracking-tight flex items-center gap-2">
-          <FileText className="w-6 h-6" />
-          DocGen
-        </h1>
-        <p className="text-xs text-sidebar-foreground/60 mt-1">Gestion documentaire</p>
+        <div className="flex items-center gap-3">
+          <img src={logoErcm} alt="ERCM" className="h-10 w-auto object-contain" />
+          <div>
+            <h1 className="text-lg font-bold text-sidebar-primary tracking-tight">Rh Doc Gen</h1>
+            <p className="text-xs text-sidebar-foreground/60">Gestion documentaire</p>
+          </div>
+        </div>
       </div>
       <nav className="flex-1 p-3 space-y-1">
         {navItems.map((item) => {
