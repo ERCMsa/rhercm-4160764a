@@ -5,8 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Plus, Trash2, Users } from "lucide-react";
+import { Plus, Trash2, Users, Search } from "lucide-react";
 import { toast } from "sonner";
+import { Link } from "react-router-dom";
 
 const emptyWorker: WorkerInsert = {
   full_name: "", cin: "", phone: "", position: "", department: "", address: "",
@@ -16,6 +17,7 @@ export default function Workers() {
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<WorkerInsert>(emptyWorker);
+  const [search, setSearch] = useState("");
 
   const { data: workers, isLoading } = useQuery({ queryKey: ["workers"], queryFn: getWorkers });
 
@@ -46,6 +48,17 @@ export default function Workers() {
 
   const updateField = (key: keyof WorkerInsert, value: string) =>
     setForm((prev) => ({ ...prev, [key]: value }));
+
+  const filtered = workers?.filter((w) => {
+    const q = search.toLowerCase();
+    return (
+      w.full_name.toLowerCase().includes(q) ||
+      (w.position ?? "").toLowerCase().includes(q) ||
+      (w.department ?? "").toLowerCase().includes(q) ||
+      (w.cin ?? "").toLowerCase().includes(q) ||
+      (w.phone ?? "").toLowerCase().includes(q)
+    );
+  });
 
   return (
     <div className="space-y-6">
@@ -82,36 +95,51 @@ export default function Workers() {
         </Dialog>
       </div>
 
+      {/* Search bar */}
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+        <Input
+          placeholder="Rechercher un employé (nom, poste, CIN...)"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="pl-10"
+        />
+      </div>
+
       {isLoading ? (
         <p className="text-muted-foreground">Chargement...</p>
-      ) : workers && workers.length > 0 ? (
+      ) : filtered && filtered.length > 0 ? (
         <div className="grid gap-3">
-          {workers.map((w) => (
-            <div key={w.id} className="bg-card border rounded-xl p-4 flex items-center justify-between hover:shadow-sm transition-shadow">
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                  <Users className="w-5 h-5 text-primary" />
+          {filtered.map((w) => (
+            <Link key={w.id} to={`/workers/${w.id}`} className="block">
+              <div className="bg-card border rounded-xl p-4 flex items-center justify-between hover:shadow-sm hover:border-primary/30 transition-all cursor-pointer">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                    <Users className="w-5 h-5 text-primary" />
+                  </div>
+                  <div>
+                    <p className="font-semibold">{w.full_name}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {[w.position, w.department].filter(Boolean).join(" • ") || "Aucun poste défini"}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <p className="font-semibold">{w.full_name}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {[w.position, w.department].filter(Boolean).join(" • ") || "Aucun poste défini"}
-                  </p>
+                <div className="flex items-center gap-2">
+                  {w.phone && <span className="text-xs text-muted-foreground">{w.phone}</span>}
+                  <Button variant="ghost" size="icon" onClick={(e) => { e.preventDefault(); e.stopPropagation(); deleteMutation.mutate(w.id); }}>
+                    <Trash2 className="w-4 h-4 text-destructive" />
+                  </Button>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                {w.phone && <span className="text-xs text-muted-foreground">{w.phone}</span>}
-                <Button variant="ghost" size="icon" onClick={() => deleteMutation.mutate(w.id)}>
-                  <Trash2 className="w-4 h-4 text-destructive" />
-                </Button>
-              </div>
-            </div>
+            </Link>
           ))}
         </div>
       ) : (
         <div className="text-center py-12 bg-card rounded-xl border">
           <Users className="w-12 h-12 mx-auto text-muted-foreground/50 mb-3" />
-          <p className="text-muted-foreground">Aucun employé. Ajoutez votre premier employé.</p>
+          <p className="text-muted-foreground">
+            {search ? "Aucun employé trouvé" : "Aucun employé. Ajoutez votre premier employé."}
+          </p>
         </div>
       )}
     </div>
