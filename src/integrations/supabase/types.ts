@@ -20,8 +20,14 @@ export type Database = {
           created_at: string
           document_type: string
           id: string
+          responsible_validated_at: string | null
+          responsible_validator_id: string | null
+          rh_validated_at: string | null
+          rh_validator_id: string | null
           title: string
           updated_at: string
+          validated_by_responsible: boolean
+          validated_by_rh: boolean
           worker_id: string
         }
         Insert: {
@@ -29,8 +35,14 @@ export type Database = {
           created_at?: string
           document_type: string
           id?: string
+          responsible_validated_at?: string | null
+          responsible_validator_id?: string | null
+          rh_validated_at?: string | null
+          rh_validator_id?: string | null
           title: string
           updated_at?: string
+          validated_by_responsible?: boolean
+          validated_by_rh?: boolean
           worker_id: string
         }
         Update: {
@@ -38,8 +50,14 @@ export type Database = {
           created_at?: string
           document_type?: string
           id?: string
+          responsible_validated_at?: string | null
+          responsible_validator_id?: string | null
+          rh_validated_at?: string | null
+          rh_validator_id?: string | null
           title?: string
           updated_at?: string
+          validated_by_responsible?: boolean
+          validated_by_rh?: boolean
           worker_id?: string
         }
         Relationships: [
@@ -61,6 +79,8 @@ export type Database = {
           full_name: string
           hire_date: string | null
           id: string
+          is_department_head: boolean
+          matricule: string | null
           phone: string | null
           position: string | null
           updated_at: string
@@ -73,6 +93,8 @@ export type Database = {
           full_name: string
           hire_date?: string | null
           id?: string
+          is_department_head?: boolean
+          matricule?: string | null
           phone?: string | null
           position?: string | null
           updated_at?: string
@@ -85,6 +107,8 @@ export type Database = {
           full_name?: string
           hire_date?: string | null
           id?: string
+          is_department_head?: boolean
+          matricule?: string | null
           phone?: string | null
           position?: string | null
           updated_at?: string
