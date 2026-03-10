@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Download, Save, Eye } from "lucide-react";
+import { Download, Save, Eye, Printer } from "lucide-react";
 import { toast } from "sonner";
 import DocumentPreview from "@/components/DocumentPreview";
 
@@ -154,7 +154,10 @@ export default function GenerateDocument() {
 
         {showPreview && selectedWorker && (
           <div className="space-y-4">
-            <div className="flex justify-end">
+            <div className="flex justify-end gap-2">
+              <Button onClick={() => window.print()} variant="outline">
+                <Printer className="w-4 h-4 mr-2" />Imprimer
+              </Button>
               <Button onClick={handleDownloadPdf} variant="outline">
                 <Download className="w-4 h-4 mr-2" />Télécharger PDF
               </Button>

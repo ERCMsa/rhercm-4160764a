@@ -4,29 +4,32 @@ import { getWorkers, createWorker, deleteWorker, type WorkerInsert } from "@/lib
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Plus, Trash2, Users, Search } from "lucide-react";
+import { Plus, Trash2, Users, Search, Shield } from "lucide-react";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
 
 const emptyWorker: WorkerInsert = {
-  full_name: "", cin: "", phone: "", position: "", department: "", address: "",
+  full_name: "", cin: "", phone: "", position: "", department: "", address: "", matricule: "",
 };
 
 export default function Workers() {
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState<WorkerInsert>(emptyWorker);
+  const [form, setForm] = useState<WorkerInsert>({ ...emptyWorker });
+  const [isDeptHead, setIsDeptHead] = useState(false);
   const [search, setSearch] = useState("");
 
   const { data: workers, isLoading } = useQuery({ queryKey: ["workers"], queryFn: getWorkers });
 
   const createMutation = useMutation({
-    mutationFn: createWorker,
+    mutationFn: () => createWorker({ ...form, is_department_head: isDeptHead }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["workers"] });
       setOpen(false);
-      setForm(emptyWorker);
+      setForm({ ...emptyWorker });
+      setIsDeptHead(false);
       toast.success("Employé ajouté");
     },
     onError: () => toast.error("Erreur lors de l'ajout"),
@@ -43,7 +46,7 @@ export default function Workers() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.full_name.trim()) { toast.error("Le nom est requis"); return; }
-    createMutation.mutate(form);
+    createMutation.mutate();
   };
 
   const updateField = (key: keyof WorkerInsert, value: string) =>
@@ -56,7 +59,8 @@ export default function Workers() {
       (w.position ?? "").toLowerCase().includes(q) ||
       (w.department ?? "").toLowerCase().includes(q) ||
       (w.cin ?? "").toLowerCase().includes(q) ||
-      (w.phone ?? "").toLowerCase().includes(q)
+      (w.phone ?? "").toLowerCase().includes(q) ||
+      ((w as any).matricule ?? "").toLowerCase().includes(q)
     );
   });
 
@@ -75,6 +79,7 @@ export default function Workers() {
             <DialogHeader><DialogTitle>Nouvel employé</DialogTitle></DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               {([
+                ["matricule", "Matricule"],
                 ["full_name", "Nom complet *"],
                 ["cin", "CIN"],
                 ["phone", "Téléphone"],
@@ -87,6 +92,10 @@ export default function Workers() {
                   <Input value={(form[key] as string) ?? ""} onChange={(e) => updateField(key, e.target.value)} />
                 </div>
               ))}
+              <div className="flex items-center gap-3 pt-1">
+                <Switch checked={isDeptHead} onCheckedChange={setIsDeptHead} />
+                <Label className="cursor-pointer">Responsable de département</Label>
+              </div>
               <Button type="submit" className="w-full" disabled={createMutation.isPending}>
                 {createMutation.isPending ? "Ajout..." : "Ajouter l'employé"}
               </Button>
@@ -95,11 +104,10 @@ export default function Workers() {
         </Dialog>
       </div>
 
-      {/* Search bar */}
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
         <Input
-          placeholder="Rechercher un employé (nom, poste, CIN...)"
+          placeholder="Rechercher un employé (nom, poste, matricule, CIN...)"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="pl-10"
@@ -115,12 +123,21 @@ export default function Workers() {
               <div className="bg-card border rounded-xl p-4 flex items-center justify-between hover:shadow-sm hover:border-primary/30 transition-all cursor-pointer">
                 <div className="flex items-center gap-4">
                   <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                    <Users className="w-5 h-5 text-primary" />
+                    {(w as any).is_department_head ? (
+                      <Shield className="w-5 h-5 text-primary" />
+                    ) : (
+                      <Users className="w-5 h-5 text-primary" />
+                    )}
                   </div>
                   <div>
-                    <p className="font-semibold">{w.full_name}</p>
+                    <p className="font-semibold">
+                      {w.full_name}
+                      {(w as any).is_department_head && (
+                        <span className="ml-2 text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">Chef de service</span>
+                      )}
+                    </p>
                     <p className="text-sm text-muted-foreground">
-                      {[w.position, w.department].filter(Boolean).join(" • ") || "Aucun poste défini"}
+                      {[(w as any).matricule ? `#${(w as any).matricule}` : null, w.position, w.department].filter(Boolean).join(" • ") || "Aucun poste défini"}
                     </p>
                   </div>
                 </div>

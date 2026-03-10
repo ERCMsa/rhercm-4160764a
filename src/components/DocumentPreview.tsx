@@ -5,29 +5,86 @@ interface Props {
   type: "contract" | "bon_sortie" | "bon_rentree" | "avertissement";
   worker: Worker;
   data: Record<string, string>;
+  validationStatus?: {
+    validated_by_responsible?: boolean;
+    validated_by_rh?: boolean;
+    responsible_validated_at?: string | null;
+    rh_validated_at?: string | null;
+  };
 }
 
-function DocHeader({ title, subtitle }: { title: string; subtitle?: string }) {
+function DocHeader({ title, subtitle, reference }: { title: string; subtitle?: string; reference?: string }) {
   return (
-    <div className="doc-header">
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
-        <img src={logoErcm} alt="ERCM SA" style={{ height: 64, objectFit: "contain" }} />
-        <div style={{ textAlign: "right", fontSize: 11, color: "#666", lineHeight: 1.6 }}>
-          <p style={{ margin: 0 }}>ERCM SA</p>
-          <p style={{ margin: 0 }}>Etudes Réalisation Construction Métallique</p>
+    <div style={{ marginBottom: 24 }}>
+      <div style={{ display: "flex", alignItems: "flex-start", gap: 20, marginBottom: 8 }}>
+        <img src={logoErcm} alt="ERCM SA" style={{ height: 72, objectFit: "contain" }} />
+        <div style={{ flex: 1, textAlign: "center" }}>
+          <h1 style={{ fontSize: 28, fontWeight: 900, color: "#1a1a2e", margin: 0, letterSpacing: 2, lineHeight: 1.2 }}>{title}</h1>
+          {subtitle && <p style={{ fontSize: 18, fontWeight: 700, color: "#ce161d", margin: "4px 0 0 0" }}>{subtitle}</p>}
+          {reference && <p style={{ fontSize: 12, color: "#888", margin: "4px 0 0 0" }}>Référence : {reference}</p>}
         </div>
       </div>
-      <div style={{ borderTop: "3px solid #c41a1a", borderBottom: "1px solid #ddd", padding: "14px 0", marginTop: 8 }}>
-        <p className="doc-title" style={{ color: "#1a1a2e", letterSpacing: 2 }}>{title}</p>
-        {subtitle && <p style={{ fontSize: 12, color: "#666", marginTop: 4 }}>{subtitle}</p>}
+      <div style={{ borderTop: "3px solid #1a1a2e", marginTop: 12 }} />
+    </div>
+  );
+}
+
+function InfoGrid({ items }: { items: { label: string; value?: string | null }[] }) {
+  return (
+    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0", border: "1px solid #ddd", borderRadius: 4, overflow: "hidden", margin: "20px 0" }}>
+      {items.map((item, i) => (
+        <div key={i} style={{ padding: "10px 16px", borderBottom: i < items.length - 2 ? "1px solid #ddd" : "none", borderRight: i % 2 === 0 ? "1px solid #ddd" : "none", borderLeft: i % 2 === 0 ? "3px solid #ce161d" : "none" }}>
+          <p style={{ fontSize: 11, fontWeight: 700, color: "#666", margin: 0, textTransform: "uppercase" }}>{item.label}</p>
+          <p style={{ fontSize: 14, fontWeight: 600, color: "#1a1a2e", margin: "2px 0 0 0" }}>{item.value || "—"}</p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function VisaSection({ validationStatus }: { validationStatus?: Props["validationStatus"] }) {
+  const responsableValidated = validationStatus?.validated_by_responsible;
+  const rhValidated = validationStatus?.validated_by_rh;
+
+  return (
+    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, marginTop: 40 }}>
+      <div style={{ border: "2px solid #1a1a2e", borderRadius: 4, padding: 20, minHeight: 100, position: "relative" }}>
+        <p style={{ fontSize: 13, fontWeight: 800, color: "#1a1a2e", margin: "0 0 24px 0", textTransform: "uppercase" }}>VISA CHEF DE SERVICE</p>
+        {responsableValidated && (
+          <div style={{ position: "absolute", top: 30, left: "50%", transform: "translateX(-50%) rotate(-15deg)", border: "3px solid #22c55e", borderRadius: 8, padding: "4px 16px", color: "#22c55e", fontWeight: 800, fontSize: 18, opacity: 0.8 }}>
+            VALIDÉ
+          </div>
+        )}
+        <div style={{ borderTop: "1px solid #999", paddingTop: 6, marginTop: 20 }}>
+          <p style={{ fontSize: 11, color: "#888", margin: 0, textAlign: "center" }}>Signature et Cachet</p>
+        </div>
+      </div>
+      <div style={{ border: "2px solid #1a1a2e", borderRadius: 4, padding: 20, minHeight: 100, position: "relative" }}>
+        <p style={{ fontSize: 13, fontWeight: 800, color: "#1a1a2e", margin: "0 0 24px 0", textTransform: "uppercase" }}>VISA RH</p>
+        {rhValidated && (
+          <div style={{ position: "absolute", top: 30, left: "50%", transform: "translateX(-50%) rotate(-15deg)", border: "3px solid #22c55e", borderRadius: 8, padding: "4px 16px", color: "#22c55e", fontWeight: 800, fontSize: 18, opacity: 0.8 }}>
+            VALIDÉ
+          </div>
+        )}
+        <div style={{ borderTop: "1px solid #999", paddingTop: 6, marginTop: 20 }}>
+          <p style={{ fontSize: 11, color: "#888", margin: 0, textAlign: "center" }}>Signature et Cachet</p>
+        </div>
       </div>
     </div>
   );
 }
 
+function DocFooter() {
+  return (
+    <p style={{ textAlign: "center", fontSize: 11, color: "#ce161d", marginTop: 30, fontStyle: "italic" }}>
+      Document généré automatiquement — À conserver
+    </p>
+  );
+}
+
 function DocSignature({ left, right }: { left: string; right: string }) {
   return (
-    <div className="doc-signature" style={{ marginTop: 60, paddingTop: 20 }}>
+    <div style={{ display: "flex", justifyContent: "space-between", marginTop: 60, paddingTop: 20 }}>
       <div style={{ textAlign: "center" }}>
         <div style={{ height: 60 }} />
         <p style={{ borderTop: "2px solid #1a1a2e", paddingTop: 8, minWidth: 200, fontSize: 13, fontWeight: 600 }}>{left}</p>
@@ -51,13 +108,13 @@ function Field({ label, value }: { label: string; value?: string | null }) {
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
-    <p style={{ fontSize: 14, fontWeight: 700, color: "#c41a1a", textTransform: "uppercase", letterSpacing: 1, marginTop: 20, marginBottom: 10, borderLeft: "3px solid #c41a1a", paddingLeft: 10 }}>
+    <p style={{ fontSize: 14, fontWeight: 700, color: "#ce161d", textTransform: "uppercase", letterSpacing: 1, marginTop: 20, marginBottom: 10, borderLeft: "3px solid #ce161d", paddingLeft: 10 }}>
       {children}
     </p>
   );
 }
 
-export default function DocumentPreview({ type, worker, data }: Props) {
+export default function DocumentPreview({ type, worker, data, validationStatus }: Props) {
   const today = new Date().toLocaleDateString("fr-FR", { year: "numeric", month: "long", day: "numeric" });
 
   const pageStyle: React.CSSProperties = {
@@ -73,7 +130,51 @@ export default function DocumentPreview({ type, worker, data }: Props) {
     borderRadius: 8,
   };
 
+  const isBon = type === "bon_sortie" || type === "bon_rentree";
+
   const templates: Record<string, React.ReactNode> = {
+    bon_sortie: (
+      <div style={pageStyle}>
+        <DocHeader title="BON D AUTORISATION" subtitle="Sortie" />
+        <InfoGrid items={[
+          { label: "Matricule", value: (worker as any).matricule },
+          { label: "Date", value: data.sortie_date },
+          { label: "Nom Complet", value: worker.full_name },
+          { label: "Heure", value: data.sortie_time },
+          { label: "Poste", value: worker.position },
+          { label: "Motif", value: data.reason },
+          { label: "Département", value: worker.department },
+          { label: "Destination", value: data.destination },
+        ]} />
+        {data.return_expected && (
+          <p style={{ fontSize: 13, color: "#666", marginTop: 8 }}>Retour prévu : <strong>{data.return_expected}</strong></p>
+        )}
+        <VisaSection validationStatus={validationStatus} />
+        <DocFooter />
+      </div>
+    ),
+
+    bon_rentree: (
+      <div style={pageStyle}>
+        <DocHeader title="BON D AUTORISATION" subtitle="Entrée" />
+        <InfoGrid items={[
+          { label: "Matricule", value: (worker as any).matricule },
+          { label: "Date", value: data.rentree_date },
+          { label: "Nom Complet", value: worker.full_name },
+          { label: "Heure", value: data.rentree_time },
+          { label: "Poste", value: worker.position },
+          { label: "Motif", value: data.absence_reason },
+          { label: "Département", value: worker.department },
+          { label: "Début d'absence", value: data.absence_start },
+        ]} />
+        {data.notes && (
+          <p style={{ fontSize: 13, color: "#666", marginTop: 8 }}>Observations : <strong>{data.notes}</strong></p>
+        )}
+        <VisaSection validationStatus={validationStatus} />
+        <DocFooter />
+      </div>
+    ),
+
     contract: (
       <div style={pageStyle}>
         <DocHeader title="CONTRAT DE TRAVAIL" subtitle={data.contract_type === "CDD" ? "Contrat à Durée Déterminée" : "Contrat à Durée Indéterminée"} />
@@ -102,46 +203,7 @@ export default function DocumentPreview({ type, worker, data }: Props) {
         )}
 
         <DocSignature left="L'Employeur" right="L'Employé(e)" />
-      </div>
-    ),
-
-    bon_sortie: (
-      <div style={pageStyle}>
-        <DocHeader title="BON DE SORTIE" />
-        <p style={{ textAlign: "right", fontSize: 13, color: "#666", marginBottom: 24 }}>Date : {data.sortie_date || today}</p>
-
-        <SectionTitle>Informations de l'employé</SectionTitle>
-        <Field label="Nom complet" value={worker.full_name} />
-        <Field label="Poste" value={worker.position} />
-        <Field label="Département" value={worker.department} />
-
-        <SectionTitle>Détails de la sortie</SectionTitle>
-        <Field label="Heure de sortie" value={data.sortie_time} />
-        <Field label="Motif" value={data.reason} />
-        <Field label="Destination" value={data.destination} />
-        <Field label="Retour prévu" value={data.return_expected} />
-
-        <DocSignature left="Responsable" right="Employé(e)" />
-      </div>
-    ),
-
-    bon_rentree: (
-      <div style={pageStyle}>
-        <DocHeader title="BON DE RENTRÉE" />
-        <p style={{ textAlign: "right", fontSize: 13, color: "#666", marginBottom: 24 }}>Date : {data.rentree_date || today}</p>
-
-        <SectionTitle>Informations de l'employé</SectionTitle>
-        <Field label="Nom complet" value={worker.full_name} />
-        <Field label="Poste" value={worker.position} />
-        <Field label="Département" value={worker.department} />
-
-        <SectionTitle>Détails de la rentrée</SectionTitle>
-        <Field label="Heure de rentrée" value={data.rentree_time} />
-        <Field label="Début d'absence" value={data.absence_start} />
-        <Field label="Motif d'absence" value={data.absence_reason} />
-        {data.notes && <Field label="Observations" value={data.notes} />}
-
-        <DocSignature left="Responsable" right="Employé(e)" />
+        <DocFooter />
       </div>
     ),
 
@@ -171,6 +233,7 @@ export default function DocumentPreview({ type, worker, data }: Props) {
         </p>
 
         <DocSignature left="La Direction" right="Employé(e)" />
+        <DocFooter />
       </div>
     ),
   };

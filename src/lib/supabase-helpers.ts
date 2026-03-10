@@ -38,7 +38,7 @@ export async function deleteWorker(id: string) {
 }
 
 export async function getDocuments() {
-  const { data, error } = await supabase.from("documents").select("*, workers(full_name)").order("created_at", { ascending: false });
+  const { data, error } = await supabase.from("documents").select("*, workers(full_name, department)").order("created_at", { ascending: false });
   if (error) throw error;
   return data;
 }
@@ -58,6 +58,28 @@ export async function createDocument(doc: DocumentInsert) {
 export async function deleteDocument(id: string) {
   const { error } = await supabase.from("documents").delete().eq("id", id);
   if (error) throw error;
+}
+
+export async function validateDocument(id: string, role: "responsible" | "rh", validatorId?: string) {
+  const updates: Record<string, any> = {};
+  if (role === "responsible") {
+    updates.validated_by_responsible = true;
+    updates.responsible_validated_at = new Date().toISOString();
+    if (validatorId) updates.responsible_validator_id = validatorId;
+  } else {
+    updates.validated_by_rh = true;
+    updates.rh_validated_at = new Date().toISOString();
+    if (validatorId) updates.rh_validator_id = validatorId;
+  }
+  const { data, error } = await supabase.from("documents").update(updates).eq("id", id).select().single();
+  if (error) throw error;
+  return data;
+}
+
+export async function getDepartmentHeads() {
+  const { data, error } = await supabase.from("workers").select("*").eq("is_department_head", true);
+  if (error) throw error;
+  return data;
 }
 
 export const DOCUMENT_TYPES = {
