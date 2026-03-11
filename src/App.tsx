@@ -1,3 +1,4 @@
+import { ClerkProvider } from "@clerk/clerk-react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -13,29 +14,32 @@ import GenerateDocument from "./pages/GenerateDocument";
 import Statistics from "./pages/Statistics";
 import NotFound from "./pages/NotFound";
 
+const CLERK_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 const queryClient = new QueryClient();
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route element={<Layout />}>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/workers" element={<Workers />} />
-            <Route path="/workers/:id" element={<WorkerDetail />} />
-            <Route path="/documents" element={<Documents />} />
-            <Route path="/documents/:id" element={<DocumentView />} />
-            <Route path="/generate/:type" element={<GenerateDocument />} />
-            <Route path="/statistics" element={<Statistics />} />
-          </Route>
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
+  <ClerkProvider publishableKey={CLERK_KEY}>
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route element={<Layout />}>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/workers" element={<Workers />} />
+              <Route path="/workers/:id" element={<WorkerDetail />} />
+              <Route path="/documents" element={<Documents />} />
+              <Route path="/documents/:id" element={<DocumentView />} />
+              <Route path="/generate/:type" element={<GenerateDocument />} />
+              <Route path="/statistics" element={<Statistics />} />
+            </Route>
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  </ClerkProvider>
 );
 
 export default App;
