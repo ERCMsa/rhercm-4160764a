@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { ArrowLeft, FileText, Users, Shield, CheckCircle, Clock, Pencil } from "lucide-react";
 import { toast } from "sonner";
 
@@ -67,6 +67,16 @@ export default function WorkerDetail() {
 
   const isBon = (type: string) => type === "bon_sortie" || type === "bon_rentree";
 
+  const editFields: { key: keyof WorkerInsert; label: string; placeholder: string }[] = [
+    { key: "matricule", label: "Matricule", placeholder: "Ex: EMP-001" },
+    { key: "full_name", label: "Nom complet *", placeholder: "Nom et prénom" },
+    { key: "cin", label: "CIN", placeholder: "Ex: AB123456" },
+    { key: "phone", label: "Téléphone", placeholder: "Ex: 06 12 34 56 78" },
+    { key: "position", label: "Poste", placeholder: "Ex: Technicien" },
+    { key: "department", label: "Département", placeholder: "Ex: Production" },
+    { key: "address", label: "Adresse", placeholder: "Adresse complète" },
+  ];
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -90,33 +100,38 @@ export default function WorkerDetail() {
           <DialogTrigger asChild>
             <Button variant="outline" onClick={openEdit}><Pencil className="w-4 h-4 mr-2" />Modifier</Button>
           </DialogTrigger>
-          <DialogContent>
-            <DialogHeader><DialogTitle>Modifier l'employé</DialogTitle></DialogHeader>
-            <form onSubmit={handleEditSubmit} className="space-y-4">
-              {([
-                ["matricule", "Matricule"],
-                ["full_name", "Nom complet *"],
-                ["cin", "CIN"],
-                ["phone", "Téléphone"],
-                ["position", "Poste"],
-                ["department", "Département"],
-                ["address", "Adresse"],
-              ] as const).map(([key, label]) => (
-                <div key={key}>
-                  <Label>{label}</Label>
-                  <Input
-                    value={(editForm[key] as string) ?? ""}
-                    onChange={(e) => setEditForm((prev) => ({ ...prev, [key]: e.target.value }))}
-                  />
-                </div>
-              ))}
-              <div className="flex items-center gap-3 pt-1">
-                <Switch checked={isDeptHead} onCheckedChange={setIsDeptHead} />
-                <Label className="cursor-pointer">Responsable de département</Label>
+          <DialogContent className="sm:max-w-[520px] max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="text-xl">Modifier l'employé</DialogTitle>
+              <DialogDescription>Modifiez les informations de {worker.full_name}.</DialogDescription>
+            </DialogHeader>
+            <form onSubmit={handleEditSubmit} className="space-y-5 pt-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {editFields.map(({ key, label, placeholder }) => (
+                  <div key={key} className={key === "address" ? "sm:col-span-2" : ""}>
+                    <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5 block">{label}</Label>
+                    <Input
+                      value={(editForm[key] as string) ?? ""}
+                      onChange={(e) => setEditForm((prev) => ({ ...prev, [key]: e.target.value }))}
+                      placeholder={placeholder}
+                      className="h-11"
+                    />
+                  </div>
+                ))}
               </div>
-              <Button type="submit" className="w-full" disabled={editMutation.isPending}>
-                {editMutation.isPending ? "Enregistrement..." : "Enregistrer"}
-              </Button>
+              <div className="flex items-center gap-3 rounded-lg border border-border bg-muted/30 p-3">
+                <Switch checked={isDeptHead} onCheckedChange={setIsDeptHead} />
+                <div>
+                  <Label className="cursor-pointer font-medium">Responsable de département</Label>
+                  <p className="text-xs text-muted-foreground">Cet employé est chef de service</p>
+                </div>
+              </div>
+              <DialogFooter className="pt-2">
+                <Button type="button" variant="outline" onClick={() => setEditOpen(false)}>Annuler</Button>
+                <Button type="submit" disabled={editMutation.isPending}>
+                  {editMutation.isPending ? "Enregistrement..." : "Enregistrer"}
+                </Button>
+              </DialogFooter>
             </form>
           </DialogContent>
         </Dialog>
