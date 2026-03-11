@@ -14,7 +14,7 @@ import GenerateDocument from "./pages/GenerateDocument";
 import Statistics from "./pages/Statistics";
 import NotFound from "./pages/NotFound";
 
-const CLERK_KEY = "pk_test_dHJ1c3RpbmctcHJhd24tMTYuY2xlcmsuYWNjb3VudHMuZGV2JA";
+const CLERK_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 const queryClient = new QueryClient();
 
 const App = () => (
