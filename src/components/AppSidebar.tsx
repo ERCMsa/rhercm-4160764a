@@ -1,5 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
-import { Users, LayoutDashboard, LogOut, LogIn, AlertTriangle, FilePlus, BarChart3, FileText } from "lucide-react";
+import { Users, LayoutDashboard, LogOut, LogIn, AlertTriangle, FilePlus, BarChart3, FileText, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import logoErcm from "@/assets/logo-ercm.png";
 
 const navItems = [
@@ -13,12 +14,16 @@ const navItems = [
   { to: "/generate/avertissement", label: "Avertissement", icon: AlertTriangle },
 ];
 
-export default function AppSidebar() {
+interface AppSidebarProps {
+  onClose?: () => void;
+}
+
+export default function AppSidebar({ onClose }: AppSidebarProps) {
   const location = useLocation();
 
   return (
     <aside className="w-64 min-h-screen bg-sidebar text-sidebar-foreground flex flex-col border-r border-sidebar-border">
-      <div className="p-6 border-b border-sidebar-border">
+      <div className="p-6 border-b border-sidebar-border flex items-center justify-between">
         <div className="flex items-center gap-3">
           <img src={logoErcm} alt="ERCM" className="h-10 w-auto object-contain" />
           <div>
@@ -26,6 +31,11 @@ export default function AppSidebar() {
             <p className="text-xs text-sidebar-foreground/60">Gestion documentaire</p>
           </div>
         </div>
+        {onClose && (
+          <Button variant="ghost" size="icon" onClick={onClose} className="text-sidebar-foreground/70">
+            <X className="w-5 h-5" />
+          </Button>
+        )}
       </div>
       <nav className="flex-1 p-3 space-y-1">
         {navItems.map((item) => {
@@ -34,6 +44,7 @@ export default function AppSidebar() {
             <Link
               key={item.to}
               to={item.to}
+              onClick={onClose}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
                 isActive
                   ? "bg-sidebar-accent text-sidebar-primary"
