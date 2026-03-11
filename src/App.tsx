@@ -1,4 +1,4 @@
-import { ClerkProvider } from "@clerk/clerk-react";
+import { ClerkProvider, SignedIn, SignedOut, RedirectToSignIn } from "@clerk/clerk-react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -24,18 +24,23 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <Routes>
-            <Route element={<Layout />}>
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/workers" element={<Workers />} />
-              <Route path="/workers/:id" element={<WorkerDetail />} />
-              <Route path="/documents" element={<Documents />} />
-              <Route path="/documents/:id" element={<DocumentView />} />
-              <Route path="/generate/:type" element={<GenerateDocument />} />
-              <Route path="/statistics" element={<Statistics />} />
-            </Route>
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          <SignedIn>
+            <Routes>
+              <Route element={<Layout />}>
+                <Route path="/" element={<Dashboard />} />
+                <Route path="/workers" element={<Workers />} />
+                <Route path="/workers/:id" element={<WorkerDetail />} />
+                <Route path="/documents" element={<Documents />} />
+                <Route path="/documents/:id" element={<DocumentView />} />
+                <Route path="/generate/:type" element={<GenerateDocument />} />
+                <Route path="/statistics" element={<Statistics />} />
+              </Route>
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </SignedIn>
+          <SignedOut>
+            <RedirectToSignIn />
+          </SignedOut>
         </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>
