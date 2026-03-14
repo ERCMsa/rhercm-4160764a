@@ -85,10 +85,10 @@ export default function GenerateDocument() {
         title: `${DOCUMENT_TYPES[docType].label} - ${selectedWorker?.full_name}`,
         content: { ...formData, worker: selectedWorker },
       }),
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["documents"] });
       toast.success("Document sauvegardé");
-      navigate("/documents");
+      navigate(`/documents/${data.id}`);
     },
     onError: () => toast.error("Erreur lors de la sauvegarde"),
   });

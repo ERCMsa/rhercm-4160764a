@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { ArrowLeft, FileText, Users, Shield, CheckCircle, Clock, Pencil } from "lucide-react";
 import { toast } from "sonner";
@@ -27,26 +28,33 @@ export default function WorkerDetail() {
     enabled: !!id,
   });
 
-  const [editForm, setEditForm] = useState<Partial<WorkerInsert>>({});
+  const [editForm, setEditForm] = useState<Record<string, any>>({});
   const [isDeptHead, setIsDeptHead] = useState(false);
 
   const openEdit = () => {
     if (!worker) return;
     setEditForm({
       full_name: worker.full_name,
-      cin: worker.cin ?? "",
       phone: worker.phone ?? "",
       position: worker.position ?? "",
       department: worker.department ?? "",
       address: worker.address ?? "",
       matricule: worker.matricule ?? "",
+      date_naissance: (worker as any).date_naissance ?? "",
+      lieu_naissance: (worker as any).lieu_naissance ?? "",
+      situation_familiale: (worker as any).situation_familiale ?? "",
+      sexe: (worker as any).sexe ?? "",
+      hire_date: worker.hire_date ?? "",
+      numero_social: (worker as any).numero_social ?? "",
+      numero_compte: (worker as any).numero_compte ?? "",
+      acte_naissance: (worker as any).acte_naissance ?? "",
     });
     setIsDeptHead(worker.is_department_head ?? false);
     setEditOpen(true);
   };
 
   const editMutation = useMutation({
-    mutationFn: () => updateWorker(id!, { ...editForm, is_department_head: isDeptHead }),
+    mutationFn: () => updateWorker(id!, { ...editForm, is_department_head: isDeptHead } as any),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["worker", id] });
       queryClient.invalidateQueries({ queryKey: ["workers"] });
@@ -66,16 +74,6 @@ export default function WorkerDetail() {
   if (!worker) return <p className="text-destructive">Employé introuvable</p>;
 
   const isBon = (type: string) => type === "bon_sortie" || type === "bon_rentree";
-
-  const editFields: { key: keyof WorkerInsert; label: string; placeholder: string }[] = [
-    { key: "matricule", label: "Matricule", placeholder: "Ex: EMP-001" },
-    { key: "full_name", label: "Nom complet *", placeholder: "Nom et prénom" },
-    { key: "cin", label: "CIN", placeholder: "Ex: AB123456" },
-    { key: "phone", label: "Téléphone", placeholder: "Ex: 06 12 34 56 78" },
-    { key: "position", label: "Poste", placeholder: "Ex: Technicien" },
-    { key: "department", label: "Département", placeholder: "Ex: Production" },
-    { key: "address", label: "Adresse", placeholder: "Adresse complète" },
-  ];
 
   return (
     <div className="space-y-6">
@@ -100,25 +98,103 @@ export default function WorkerDetail() {
           <DialogTrigger asChild>
             <Button variant="outline" onClick={openEdit}><Pencil className="w-4 h-4 mr-2" />Modifier</Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[520px] max-h-[90vh] overflow-y-auto">
+          <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="text-xl">Modifier l'employé</DialogTitle>
               <DialogDescription>Modifiez les informations de {worker.full_name}.</DialogDescription>
             </DialogHeader>
-            <form onSubmit={handleEditSubmit} className="space-y-5 pt-2">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {editFields.map(({ key, label, placeholder }) => (
-                  <div key={key} className={key === "address" ? "sm:col-span-2" : ""}>
-                    <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5 block">{label}</Label>
-                    <Input
-                      value={(editForm[key] as string) ?? ""}
-                      onChange={(e) => setEditForm((prev) => ({ ...prev, [key]: e.target.value }))}
-                      placeholder={placeholder}
-                      className="h-11"
-                    />
+            <form onSubmit={handleEditSubmit} className="space-y-6 pt-2">
+              {/* Information Personnelle */}
+              <div>
+                <h3 className="text-sm font-semibold text-primary mb-3">Information Personnelle</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5 block">Matricule</Label>
+                    <Input value={editForm.matricule ?? ""} onChange={(e) => setEditForm((p) => ({ ...p, matricule: e.target.value }))} placeholder="Ex: EMP-001" className="h-11" />
                   </div>
-                ))}
+                  <div>
+                    <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5 block">Nom *</Label>
+                    <Input value={editForm.full_name ?? ""} onChange={(e) => setEditForm((p) => ({ ...p, full_name: e.target.value }))} placeholder="Nom et prénom" className="h-11" />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5 block">Adresse</Label>
+                    <Input value={editForm.address ?? ""} onChange={(e) => setEditForm((p) => ({ ...p, address: e.target.value }))} placeholder="Adresse complète" className="h-11" />
+                  </div>
+                  <div>
+                    <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5 block">Date de Naissance</Label>
+                    <Input type="date" value={editForm.date_naissance ?? ""} onChange={(e) => setEditForm((p) => ({ ...p, date_naissance: e.target.value }))} className="h-11" />
+                  </div>
+                  <div>
+                    <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5 block">Lieu de Naissance</Label>
+                    <Input value={editForm.lieu_naissance ?? ""} onChange={(e) => setEditForm((p) => ({ ...p, lieu_naissance: e.target.value }))} placeholder="Ex: Casablanca" className="h-11" />
+                  </div>
+                  <div>
+                    <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5 block">Situation Familiale</Label>
+                    <Select value={editForm.situation_familiale ?? ""} onValueChange={(v) => setEditForm((p) => ({ ...p, situation_familiale: v }))}>
+                      <SelectTrigger className="h-11"><SelectValue placeholder="Sélectionner" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Célibataire">Célibataire</SelectItem>
+                        <SelectItem value="Marié(e)">Marié(e)</SelectItem>
+                        <SelectItem value="Divorcé(e)">Divorcé(e)</SelectItem>
+                        <SelectItem value="Veuf(ve)">Veuf(ve)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5 block">Sexe</Label>
+                    <Select value={editForm.sexe ?? ""} onValueChange={(v) => setEditForm((p) => ({ ...p, sexe: v }))}>
+                      <SelectTrigger className="h-11"><SelectValue placeholder="Sélectionner" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Masculin">Masculin</SelectItem>
+                        <SelectItem value="Féminin">Féminin</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5 block">Téléphone</Label>
+                    <Input value={editForm.phone ?? ""} onChange={(e) => setEditForm((p) => ({ ...p, phone: e.target.value }))} placeholder="Ex: 06 12 34 56 78" className="h-11" />
+                  </div>
+                </div>
               </div>
+
+              {/* Information De Fonction */}
+              <div>
+                <h3 className="text-sm font-semibold text-primary mb-3">Information De Fonction</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5 block">Fonction</Label>
+                    <Input value={editForm.position ?? ""} onChange={(e) => setEditForm((p) => ({ ...p, position: e.target.value }))} placeholder="Ex: Technicien" className="h-11" />
+                  </div>
+                  <div>
+                    <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5 block">Département</Label>
+                    <Input value={editForm.department ?? ""} onChange={(e) => setEditForm((p) => ({ ...p, department: e.target.value }))} placeholder="Ex: Production" className="h-11" />
+                  </div>
+                  <div>
+                    <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5 block">Date de Recrutement</Label>
+                    <Input type="date" value={editForm.hire_date ?? ""} onChange={(e) => setEditForm((p) => ({ ...p, hire_date: e.target.value }))} className="h-11" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Numero Identité */}
+              <div>
+                <h3 className="text-sm font-semibold text-primary mb-3">Numéro Identité</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div>
+                    <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5 block">Numéro Social</Label>
+                    <Input value={editForm.numero_social ?? ""} onChange={(e) => setEditForm((p) => ({ ...p, numero_social: e.target.value }))} placeholder="0" className="h-11" />
+                  </div>
+                  <div>
+                    <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5 block">Numéro de Compte</Label>
+                    <Input value={editForm.numero_compte ?? ""} onChange={(e) => setEditForm((p) => ({ ...p, numero_compte: e.target.value }))} placeholder="0" className="h-11" />
+                  </div>
+                  <div>
+                    <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5 block">Acte de Naissance</Label>
+                    <Input value={editForm.acte_naissance ?? ""} onChange={(e) => setEditForm((p) => ({ ...p, acte_naissance: e.target.value }))} placeholder="Numéro" className="h-11" />
+                  </div>
+                </div>
+              </div>
+
               <div className="flex items-center gap-3 rounded-lg border border-border bg-muted/30 p-3">
                 <Switch checked={isDeptHead} onCheckedChange={setIsDeptHead} />
                 <div>
@@ -140,12 +216,18 @@ export default function WorkerDetail() {
       <div className="bg-card border rounded-xl p-6 grid grid-cols-2 md:grid-cols-3 gap-4">
         {[
           ["Matricule", worker.matricule],
-          ["CIN", worker.cin],
           ["Téléphone", worker.phone],
           ["Adresse", worker.address],
           ["Poste", worker.position],
           ["Département", worker.department],
           ["Date d'embauche", worker.hire_date ? new Date(worker.hire_date).toLocaleDateString("fr-FR") : null],
+          ["Date de naissance", (worker as any).date_naissance ? new Date((worker as any).date_naissance).toLocaleDateString("fr-FR") : null],
+          ["Lieu de naissance", (worker as any).lieu_naissance],
+          ["Situation familiale", (worker as any).situation_familiale],
+          ["Sexe", (worker as any).sexe],
+          ["N° Social", (worker as any).numero_social],
+          ["N° Compte", (worker as any).numero_compte],
+          ["Acte de naissance", (worker as any).acte_naissance],
           ["Responsable", worker.is_department_head ? "Oui" : "Non"],
         ].map(([label, value]) => (
           <div key={label as string}>

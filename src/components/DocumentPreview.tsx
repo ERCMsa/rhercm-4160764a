@@ -146,9 +146,6 @@ export default function DocumentPreview({ type, worker, data, validationStatus }
           { label: "Département", value: worker.department },
           { label: "Destination", value: data.destination },
         ]} />
-        {data.return_expected && (
-          <p style={{ fontSize: 13, color: "#666", marginTop: 8 }}>Retour prévu : <strong>{data.return_expected}</strong></p>
-        )}
         <VisaSection validationStatus={validationStatus} />
         <DocFooter />
       </div>
