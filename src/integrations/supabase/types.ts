@@ -72,45 +72,66 @@ export type Database = {
       }
       workers: {
         Row: {
+          acte_naissance: string | null
           address: string | null
           cin: string | null
           created_at: string
+          date_naissance: string | null
           department: string | null
           full_name: string
           hire_date: string | null
           id: string
           is_department_head: boolean
+          lieu_naissance: string | null
           matricule: string | null
+          numero_compte: string | null
+          numero_social: string | null
           phone: string | null
           position: string | null
+          sexe: string | null
+          situation_familiale: string | null
           updated_at: string
         }
         Insert: {
+          acte_naissance?: string | null
           address?: string | null
           cin?: string | null
           created_at?: string
+          date_naissance?: string | null
           department?: string | null
           full_name: string
           hire_date?: string | null
           id?: string
           is_department_head?: boolean
+          lieu_naissance?: string | null
           matricule?: string | null
+          numero_compte?: string | null
+          numero_social?: string | null
           phone?: string | null
           position?: string | null
+          sexe?: string | null
+          situation_familiale?: string | null
           updated_at?: string
         }
         Update: {
+          acte_naissance?: string | null
           address?: string | null
           cin?: string | null
           created_at?: string
+          date_naissance?: string | null
           department?: string | null
           full_name?: string
           hire_date?: string | null
           id?: string
           is_department_head?: boolean
+          lieu_naissance?: string | null
           matricule?: string | null
+          numero_compte?: string | null
+          numero_social?: string | null
           phone?: string | null
           position?: string | null
+          sexe?: string | null
+          situation_familiale?: string | null
           updated_at?: string
         }
         Relationships: []
