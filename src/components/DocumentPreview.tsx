@@ -51,7 +51,7 @@ function VisaSection({ validationStatus }: { validationStatus?: Props["validatio
       <div style={{ border: "2px solid #1a1a2e", borderRadius: 4, padding: 20, minHeight: 100, position: "relative" }}>
         <p style={{ fontSize: 13, fontWeight: 800, color: "#1a1a2e", margin: "0 0 24px 0", textTransform: "uppercase" }}>VISA CHEF DE SERVICE</p>
         {responsableValidated && (
-          <div style={{ position: "absolute", top: 30, left: "50%", transform: "translateX(-50%) rotate(-15deg)", border: "3px solid #22c55e", borderRadius: 8, padding: "4px 16px", color: "#22c55e", fontWeight: 800, fontSize: 18, opacity: 0.8 }}>
+          <div className="validation-stamp" style={{ position: "absolute", top: 30, left: "50%", transform: "translateX(-50%) rotate(-15deg)", border: "3px solid #22c55e", borderRadius: 8, padding: "4px 16px", color: "#22c55e", fontWeight: 800, fontSize: 18, opacity: 0.8 }}>
             VALIDÉ
           </div>
         )}
@@ -62,7 +62,7 @@ function VisaSection({ validationStatus }: { validationStatus?: Props["validatio
       <div style={{ border: "2px solid #1a1a2e", borderRadius: 4, padding: 20, minHeight: 100, position: "relative" }}>
         <p style={{ fontSize: 13, fontWeight: 800, color: "#1a1a2e", margin: "0 0 24px 0", textTransform: "uppercase" }}>VISA RH</p>
         {rhValidated && (
-          <div style={{ position: "absolute", top: 30, left: "50%", transform: "translateX(-50%) rotate(-15deg)", border: "3px solid #22c55e", borderRadius: 8, padding: "4px 16px", color: "#22c55e", fontWeight: 800, fontSize: 18, opacity: 0.8 }}>
+          <div className="validation-stamp" style={{ position: "absolute", top: 30, left: "50%", transform: "translateX(-50%) rotate(-15deg)", border: "3px solid #22c55e", borderRadius: 8, padding: "4px 16px", color: "#22c55e", fontWeight: 800, fontSize: 18, opacity: 0.8 }}>
             VALIDÉ
           </div>
         )}
@@ -146,9 +146,6 @@ export default function DocumentPreview({ type, worker, data, validationStatus }
           { label: "Département", value: worker.department },
           { label: "Destination", value: data.destination },
         ]} />
-        {data.return_expected && (
-          <p style={{ fontSize: 13, color: "#666", marginTop: 8 }}>Retour prévu : <strong>{data.return_expected}</strong></p>
-        )}
         <VisaSection validationStatus={validationStatus} />
         <DocFooter />
       </div>

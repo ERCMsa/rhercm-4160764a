@@ -130,4 +130,10 @@
     padding: 0;
     box-shadow: none;
   }
+  /* Hide VALIDÉ watermark stamps when printing */
+  #document-preview [style*="VALIDÉ"],
+  .validation-stamp {
+    display: none !important;
+    visibility: hidden !important;
+  }
 }

@@ -5,13 +5,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Plus, Trash2, Users, Search, Shield } from "lucide-react";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
 
 const emptyWorker: WorkerInsert = {
-  full_name: "", cin: "", phone: "", position: "", department: "", address: "", matricule: "",
+  full_name: "", phone: "", position: "", department: "", address: "", matricule: "",
 };
 
 export default function Workers() {
@@ -58,21 +59,10 @@ export default function Workers() {
       w.full_name.toLowerCase().includes(q) ||
       (w.position ?? "").toLowerCase().includes(q) ||
       (w.department ?? "").toLowerCase().includes(q) ||
-      (w.cin ?? "").toLowerCase().includes(q) ||
       (w.phone ?? "").toLowerCase().includes(q) ||
       (w.matricule ?? "").toLowerCase().includes(q)
     );
   });
-
-  const formFields: { key: keyof WorkerInsert; label: string; placeholder: string }[] = [
-    { key: "matricule", label: "Matricule", placeholder: "Ex: EMP-001" },
-    { key: "full_name", label: "Nom complet *", placeholder: "Nom et prénom" },
-    { key: "cin", label: "CIN", placeholder: "Ex: AB123456" },
-    { key: "phone", label: "Téléphone", placeholder: "Ex: 06 12 34 56 78" },
-    { key: "position", label: "Poste", placeholder: "Ex: Technicien" },
-    { key: "department", label: "Département", placeholder: "Ex: Production" },
-    { key: "address", label: "Adresse", placeholder: "Adresse complète" },
-  ];
 
   return (
     <div className="space-y-6">
@@ -85,25 +75,103 @@ export default function Workers() {
           <DialogTrigger asChild>
             <Button><Plus className="w-4 h-4 mr-2" />Ajouter</Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[520px] max-h-[90vh] overflow-y-auto">
+          <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="text-xl">Nouvel employé</DialogTitle>
-              <DialogDescription>Remplissez les informations du nouvel employé. Les champs marqués * sont obligatoires.</DialogDescription>
+              <DialogDescription>Remplissez les informations du nouvel employé.</DialogDescription>
             </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-5 pt-2">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {formFields.map(({ key, label, placeholder }) => (
-                  <div key={key} className={key === "address" ? "sm:col-span-2" : ""}>
-                    <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5 block">{label}</Label>
-                    <Input
-                      value={(form[key] as string) ?? ""}
-                      onChange={(e) => updateField(key, e.target.value)}
-                      placeholder={placeholder}
-                      className="h-11"
-                    />
+            <form onSubmit={handleSubmit} className="space-y-6 pt-2">
+              {/* Information Personnelle */}
+              <div>
+                <h3 className="text-sm font-semibold text-primary mb-3">Information Personnelle</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5 block">Matricule</Label>
+                    <Input value={(form.matricule as string) ?? ""} onChange={(e) => updateField("matricule", e.target.value)} placeholder="Ex: EMP-001" className="h-11" />
                   </div>
-                ))}
+                  <div>
+                    <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5 block">Nom *</Label>
+                    <Input value={form.full_name} onChange={(e) => updateField("full_name", e.target.value)} placeholder="Nom et prénom" className="h-11" />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5 block">Adresse</Label>
+                    <Input value={(form.address as string) ?? ""} onChange={(e) => updateField("address", e.target.value)} placeholder="Adresse complète" className="h-11" />
+                  </div>
+                  <div>
+                    <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5 block">Date de Naissance</Label>
+                    <Input type="date" value={(form as any).date_naissance ?? ""} onChange={(e) => updateField("date_naissance" as any, e.target.value)} className="h-11" />
+                  </div>
+                  <div>
+                    <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5 block">Lieu de Naissance</Label>
+                    <Input value={(form as any).lieu_naissance ?? ""} onChange={(e) => updateField("lieu_naissance" as any, e.target.value)} placeholder="Ex: Casablanca" className="h-11" />
+                  </div>
+                  <div>
+                    <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5 block">Situation Familiale</Label>
+                    <Select value={(form as any).situation_familiale ?? ""} onValueChange={(v) => updateField("situation_familiale" as any, v)}>
+                      <SelectTrigger className="h-11"><SelectValue placeholder="Sélectionner" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Célibataire">Célibataire</SelectItem>
+                        <SelectItem value="Marié(e)">Marié(e)</SelectItem>
+                        <SelectItem value="Divorcé(e)">Divorcé(e)</SelectItem>
+                        <SelectItem value="Veuf(ve)">Veuf(ve)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5 block">Sexe</Label>
+                    <Select value={(form as any).sexe ?? ""} onValueChange={(v) => updateField("sexe" as any, v)}>
+                      <SelectTrigger className="h-11"><SelectValue placeholder="Sélectionner" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Masculin">Masculin</SelectItem>
+                        <SelectItem value="Féminin">Féminin</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5 block">Téléphone</Label>
+                    <Input value={(form.phone as string) ?? ""} onChange={(e) => updateField("phone", e.target.value)} placeholder="Ex: 06 12 34 56 78" className="h-11" />
+                  </div>
+                </div>
               </div>
+
+              {/* Information De Fonction */}
+              <div>
+                <h3 className="text-sm font-semibold text-primary mb-3">Information De Fonction</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5 block">Fonction</Label>
+                    <Input value={(form.position as string) ?? ""} onChange={(e) => updateField("position", e.target.value)} placeholder="Ex: Technicien" className="h-11" />
+                  </div>
+                  <div>
+                    <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5 block">Département</Label>
+                    <Input value={(form.department as string) ?? ""} onChange={(e) => updateField("department", e.target.value)} placeholder="Ex: Production" className="h-11" />
+                  </div>
+                  <div>
+                    <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5 block">Date de Recrutement</Label>
+                    <Input type="date" value={(form as any).hire_date ?? ""} onChange={(e) => updateField("hire_date" as any, e.target.value)} className="h-11" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Numero Identité */}
+              <div>
+                <h3 className="text-sm font-semibold text-primary mb-3">Numéro Identité</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div>
+                    <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5 block">Numéro Social</Label>
+                    <Input value={(form as any).numero_social ?? ""} onChange={(e) => updateField("numero_social" as any, e.target.value)} placeholder="0" className="h-11" />
+                  </div>
+                  <div>
+                    <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5 block">Numéro de Compte</Label>
+                    <Input value={(form as any).numero_compte ?? ""} onChange={(e) => updateField("numero_compte" as any, e.target.value)} placeholder="0" className="h-11" />
+                  </div>
+                  <div>
+                    <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5 block">Acte de Naissance</Label>
+                    <Input value={(form as any).acte_naissance ?? ""} onChange={(e) => updateField("acte_naissance" as any, e.target.value)} placeholder="Numéro" className="h-11" />
+                  </div>
+                </div>
+              </div>
+
               <div className="flex items-center gap-3 rounded-lg border border-border bg-muted/30 p-3">
                 <Switch checked={isDeptHead} onCheckedChange={setIsDeptHead} />
                 <div>
@@ -114,7 +182,7 @@ export default function Workers() {
               <DialogFooter className="pt-2">
                 <Button type="button" variant="outline" onClick={() => setOpen(false)}>Annuler</Button>
                 <Button type="submit" disabled={createMutation.isPending}>
-                  {createMutation.isPending ? "Ajout..." : "Ajouter l'employé"}
+                  {createMutation.isPending ? "Ajout..." : "Créer"}
                 </Button>
               </DialogFooter>
             </form>
@@ -125,7 +193,7 @@ export default function Workers() {
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
         <Input
-          placeholder="Rechercher un employé (nom, poste, matricule, CIN...)"
+          placeholder="Rechercher un employé (nom, poste, matricule...)"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="pl-10 h-11"
