@@ -46,7 +46,7 @@ const formFieldsByType: Record<DocType, { key: string; label: string; type?: str
     { key: "sortie_time", label: "Heure de sortie", type: "time" },
     { key: "reason", label: "Motif de sortie", placeholder: "Ex: Rendez-vous médical" },
     { key: "destination", label: "Destination", placeholder: "Ex: Casablanca" },
-    { key: "return_expected", label: "Retour prévu", type: "time" },
+    
   ],
   bon_rentree: [
     { key: "rentree_date", label: "Date de rentrée", type: "date" },
