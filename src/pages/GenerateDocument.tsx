@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getWorkers, createDocument, DOCUMENT_TYPES } from "@/lib/supabase-helpers";
@@ -8,19 +8,36 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Download, Save, Eye, Printer } from "lucide-react";
+import { Download, Save, Printer } from "lucide-react";
 import { toast } from "sonner";
 import DocumentPreview from "@/components/DocumentPreview";
+import ContractPreview from "@/components/ContractPreview";
+import { WILAYAS_DATA, getCommunesByWilaya } from "@/data/wilayas";
 
 type DocType = keyof typeof DOCUMENT_TYPES;
 
 const todayStr = () => new Date().toISOString().slice(0, 10);
 const nowTime = () => new Date().toTimeString().slice(0, 5);
 
+function calcEndDate(startDate: string): string {
+  if (!startDate) return "";
+  const d = new Date(startDate);
+  d.setFullYear(d.getFullYear() + 1);
+  d.setDate(d.getDate() - 1);
+  return d.toISOString().slice(0, 10);
+}
+
 const getDefaultValues = (docType: DocType): Record<string, string> => {
+  const year = new Date().getFullYear();
   switch (docType) {
     case "contract":
-      return { start_date: todayStr() };
+      return {
+        num_contrat: `001/${year}`,
+        date_debut: todayStr(),
+        date_fin: calcEndDate(todayStr()),
+        date_sign: todayStr(),
+        lieu_sign: "أولاد موسى",
+      };
     case "bon_sortie":
       return { sortie_date: todayStr(), sortie_time: nowTime() };
     case "bon_rentree":
@@ -33,20 +50,12 @@ const getDefaultValues = (docType: DocType): Record<string, string> => {
 };
 
 const formFieldsByType: Record<DocType, { key: string; label: string; type?: string; placeholder?: string }[]> = {
-  contract: [
-    { key: "salary", label: "Salaire (DH)", placeholder: "Ex: 5000" },
-    { key: "contract_type", label: "Type de contrat", placeholder: "CDI ou CDD" },
-    { key: "start_date", label: "Date de début", type: "date" },
-    { key: "end_date", label: "Date de fin (si CDD)", type: "date" },
-    { key: "work_hours", label: "Horaires de travail", placeholder: "Ex: 8h - 17h" },
-    { key: "notes", label: "Clauses supplémentaires", type: "textarea", placeholder: "Clauses additionnelles..." },
-  ],
+  contract: [], // handled separately
   bon_sortie: [
     { key: "sortie_date", label: "Date de sortie", type: "date" },
     { key: "sortie_time", label: "Heure de sortie", type: "time" },
     { key: "reason", label: "Motif de sortie", placeholder: "Ex: Rendez-vous médical" },
     { key: "destination", label: "Destination", placeholder: "Ex: Casablanca" },
-    
   ],
   bon_rentree: [
     { key: "rentree_date", label: "Date de rentrée", type: "date" },
@@ -64,6 +73,136 @@ const formFieldsByType: Record<DocType, { key: string; label: string; type?: str
   ],
 };
 
+function WilayaSelect({ value, onChange, label }: { value: string; onChange: (v: string) => void; label: string }) {
+  return (
+    <div>
+      <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5 block">{label}</Label>
+      <Select value={value} onValueChange={onChange}>
+        <SelectTrigger className="h-11"><SelectValue placeholder="--- إختر ولاية ---" /></SelectTrigger>
+        <SelectContent className="max-h-60">
+          {WILAYAS_DATA.map((w) => (
+            <SelectItem key={w.code} value={w.nom_ar}>{w.code} - {w.nom_ar} ({w.nom_fr})</SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  );
+}
+
+function CommuneSelect({ wilayaAr, value, onChange, label }: { wilayaAr: string; value: string; onChange: (v: string) => void; label: string }) {
+  const communes = useMemo(() => getCommunesByWilaya(wilayaAr), [wilayaAr]);
+  return (
+    <div>
+      <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5 block">{label}</Label>
+      <Select value={value} onValueChange={onChange} disabled={!wilayaAr}>
+        <SelectTrigger className="h-11"><SelectValue placeholder="--- إختر بلدية ---" /></SelectTrigger>
+        <SelectContent className="max-h-60">
+          {communes.map((c) => (
+            <SelectItem key={c} value={c}>{c}</SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  );
+}
+
+function SectionHeader({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="bg-muted/50 border-r-4 border-destructive px-3 py-2 font-bold text-sm text-foreground">
+      {children}
+    </div>
+  );
+}
+
+function ContractForm({ formData, setFormData, worker }: {
+  formData: Record<string, string>;
+  setFormData: React.Dispatch<React.SetStateAction<Record<string, string>>>;
+  worker: any;
+}) {
+  const set = (key: string) => (val: string) => setFormData(p => ({ ...p, [key]: val }));
+  const inp = (key: string, label: string, opts?: { type?: string; placeholder?: string }) => (
+    <div>
+      <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5 block">{label}</Label>
+      <Input
+        type={opts?.type ?? "text"}
+        value={formData[key] ?? ""}
+        onChange={(e) => set(key)(e.target.value)}
+        placeholder={opts?.placeholder}
+        className="h-11"
+      />
+    </div>
+  );
+
+  // Auto-fill from worker data
+  useEffect(() => {
+    if (worker) {
+      setFormData(p => ({
+        ...p,
+        date_nais: p.date_nais || worker.date_naissance || "",
+        lieu_nais: p.lieu_nais || worker.lieu_naissance || "",
+        adresse: p.adresse || worker.address || "",
+        tel: p.tel || worker.phone || "",
+        poste: p.poste || worker.position || "",
+      }));
+    }
+  }, [worker?.id]);
+
+  // Auto-calculate end date
+  useEffect(() => {
+    if (formData.date_debut) {
+      const end = calcEndDate(formData.date_debut);
+      setFormData(p => ({ ...p, date_fin: end }));
+    }
+  }, [formData.date_debut]);
+
+  return (
+    <div className="space-y-4">
+      <SectionHeader>1. معلومات العقد (Informations Contrat)</SectionHeader>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {inp("num_contrat", "رقم العقد (N° Contrat)", { placeholder: "ex: 007/2024" })}
+        {inp("date_debut", "تاريخ بداية العقد (Date Début)", { type: "date" })}
+        {inp("date_fin", "تاريخ نهاية العقد (Date Fin)", { type: "date" })}
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {inp("poste", "المنصب (Poste)", { placeholder: "المنصب" })}
+        {inp("lieu_sign", "مكان التحرير (Lieu de signature)", { placeholder: "أولاد موسى" })}
+        {inp("date_sign", "تاريخ التحرير (Date de signature)", { type: "date" })}
+      </div>
+
+      <SectionHeader>2. معلومات العامل (Informations Salarié)</SectionHeader>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {inp("date_nais", "تاريخ الميلاد (Date Naissance)", { type: "date" })}
+        <WilayaSelect label="ولاية الميلاد (Wilaya Naissance)" value={formData.wilaya_nais ?? ""} onChange={set("wilaya_nais")} />
+        <CommuneSelect label="مكان الميلاد (Lieu Naissance)" wilayaAr={formData.wilaya_nais ?? ""} value={formData.lieu_nais ?? ""} onChange={set("lieu_nais")} />
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {inp("cni", "رقم ب.ت.و (N° CNI Biométrique)")}
+        {inp("date_cni", "تاريخ الصدور (Date Délivrance)", { type: "date" })}
+        <WilayaSelect label="ولاية الإصدار (Wilaya CNI)" value={formData.wilaya_cni ?? ""} onChange={set("wilaya_cni")} />
+        <CommuneSelect label="بلدية الإصدار (Commune CNI)" wilayaAr={formData.wilaya_cni ?? ""} value={formData.commune_cni ?? ""} onChange={set("commune_cni")} />
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {inp("adresse", "العنوان (Adresse)")}
+        <WilayaSelect label="ولاية الإقامة (Wilaya Adresse)" value={formData.wilaya_adr ?? ""} onChange={set("wilaya_adr")} />
+        {inp("date_res", "تاريخ بطاقة الإقامة (Date Cert. Résidence)", { type: "date" })}
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {inp("tel", "الهاتف (Téléphone)")}
+        {inp("email", "الإيميل (Email)")}
+      </div>
+
+      <SectionHeader>3. الأجر (Salaire)</SectionHeader>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {inp("sal_base", "الأجر القاعدي (Salaire de base - DA)")}
+        {inp("sal_net", "الأجر الصافي (Salaire Net - DA)")}
+      </div>
+    </div>
+  );
+}
+
 export default function GenerateDocument() {
   const { type } = useParams<{ type: string }>();
   const navigate = useNavigate();
@@ -72,10 +211,11 @@ export default function GenerateDocument() {
 
   const [workerId, setWorkerId] = useState("");
   const [formData, setFormData] = useState<Record<string, string>>(() => getDefaultValues(docType));
-  const [showPreview, setShowPreview] = useState(false);
 
   const { data: workers } = useQuery({ queryKey: ["workers"], queryFn: getWorkers });
   const selectedWorker = workers?.find((w) => w.id === workerId);
+
+  const isContract = docType === "contract";
 
   const saveMutation = useMutation({
     mutationFn: () =>
@@ -110,73 +250,94 @@ export default function GenerateDocument() {
         <p className="text-muted-foreground mt-1">Remplissez les informations pour générer le document</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="bg-card border rounded-xl p-6 space-y-6">
-          {/* Employee selector */}
-          <div>
-            <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5 block">Employé *</Label>
-            <Select value={workerId} onValueChange={setWorkerId}>
-              <SelectTrigger className="h-11"><SelectValue placeholder="Sélectionner un employé" /></SelectTrigger>
-              <SelectContent>
-                {workers?.map((w) => (
-                  <SelectItem key={w.id} value={w.id}>{w.full_name} — {w.position}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Form fields in grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {fields.map((field) => (
-              <div key={field.key} className={field.type === "textarea" ? "sm:col-span-2" : ""}>
-                <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5 block">{field.label}</Label>
-                {field.type === "textarea" ? (
-                  <Textarea
-                    value={formData[field.key] ?? ""}
-                    onChange={(e) => setFormData((p) => ({ ...p, [field.key]: e.target.value }))}
-                    placeholder={field.placeholder}
-                    rows={3}
-                  />
-                ) : (
-                  <Input
-                    type={field.type ?? "text"}
-                    value={formData[field.key] ?? ""}
-                    onChange={(e) => setFormData((p) => ({ ...p, [field.key]: e.target.value }))}
-                    placeholder={field.placeholder}
-                    className="h-11"
-                  />
-                )}
-              </div>
+      {/* Employee selector - always on top */}
+      <div className="bg-card border rounded-xl p-6">
+        <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5 block">Employé *</Label>
+        <Select value={workerId} onValueChange={setWorkerId}>
+          <SelectTrigger className="h-11 max-w-md"><SelectValue placeholder="Sélectionner un employé" /></SelectTrigger>
+          <SelectContent>
+            {workers?.map((w) => (
+              <SelectItem key={w.id} value={w.id}>{w.full_name} — {w.position}</SelectItem>
             ))}
-          </div>
+          </SelectContent>
+        </Select>
+      </div>
 
-          {/* Action buttons */}
-          <div className="flex gap-3 pt-2 border-t border-border">
-            <Button onClick={() => setShowPreview(true)} disabled={!workerId} variant="outline" className="flex-1">
-              <Eye className="w-4 h-4 mr-2" />Aperçu
-            </Button>
-            <Button onClick={() => saveMutation.mutate()} disabled={!workerId || saveMutation.isPending} className="flex-1">
-              <Save className="w-4 h-4 mr-2" />{saveMutation.isPending ? "Sauvegarde..." : "Sauvegarder"}
-            </Button>
-          </div>
-        </div>
-
-        {showPreview && selectedWorker && (
-          <div className="space-y-4">
-            <div className="flex justify-end gap-2">
-              <Button onClick={() => window.print()} variant="outline" size="sm">
+      {isContract ? (
+        /* Contract: full-width form then full-width preview */
+        <div className="space-y-6">
+          <div className="bg-card border rounded-xl p-6 space-y-6">
+            <ContractForm formData={formData} setFormData={setFormData} worker={selectedWorker} />
+            <div className="flex gap-3 pt-2 border-t border-border">
+              <Button onClick={() => saveMutation.mutate()} disabled={!workerId || saveMutation.isPending} className="flex-1">
+                <Save className="w-4 h-4 mr-2" />{saveMutation.isPending ? "Sauvegarde..." : "Sauvegarder"}
+              </Button>
+              <Button onClick={() => window.print()} variant="outline" disabled={!workerId}>
                 <Printer className="w-4 h-4 mr-2" />Imprimer
               </Button>
-              <Button onClick={handleDownloadPdf} variant="outline" size="sm">
-                <Download className="w-4 h-4 mr-2" />Télécharger PDF
+              <Button onClick={handleDownloadPdf} variant="outline" disabled={!workerId}>
+                <Download className="w-4 h-4 mr-2" />PDF
               </Button>
             </div>
+          </div>
+
+          {selectedWorker && (
             <div id="document-preview">
-              <DocumentPreview type={docType} worker={selectedWorker} data={formData} />
+              <ContractPreview worker={selectedWorker} data={formData} />
+            </div>
+          )}
+        </div>
+      ) : (
+        /* Other doc types: side by side */
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="bg-card border rounded-xl p-6 space-y-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {fields.map((field) => (
+                <div key={field.key} className={field.type === "textarea" ? "sm:col-span-2" : ""}>
+                  <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5 block">{field.label}</Label>
+                  {field.type === "textarea" ? (
+                    <Textarea
+                      value={formData[field.key] ?? ""}
+                      onChange={(e) => setFormData((p) => ({ ...p, [field.key]: e.target.value }))}
+                      placeholder={field.placeholder}
+                      rows={3}
+                    />
+                  ) : (
+                    <Input
+                      type={field.type ?? "text"}
+                      value={formData[field.key] ?? ""}
+                      onChange={(e) => setFormData((p) => ({ ...p, [field.key]: e.target.value }))}
+                      placeholder={field.placeholder}
+                      className="h-11"
+                    />
+                  )}
+                </div>
+              ))}
+            </div>
+            <div className="flex gap-3 pt-2 border-t border-border">
+              <Button onClick={() => saveMutation.mutate()} disabled={!workerId || saveMutation.isPending} className="flex-1">
+                <Save className="w-4 h-4 mr-2" />{saveMutation.isPending ? "Sauvegarde..." : "Sauvegarder"}
+              </Button>
             </div>
           </div>
-        )}
-      </div>
+
+          {selectedWorker && (
+            <div className="space-y-4">
+              <div className="flex justify-end gap-2">
+                <Button onClick={() => window.print()} variant="outline" size="sm">
+                  <Printer className="w-4 h-4 mr-2" />Imprimer
+                </Button>
+                <Button onClick={handleDownloadPdf} variant="outline" size="sm">
+                  <Download className="w-4 h-4 mr-2" />Télécharger PDF
+                </Button>
+              </div>
+              <div id="document-preview">
+                <DocumentPreview type={docType} worker={selectedWorker} data={formData} />
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
